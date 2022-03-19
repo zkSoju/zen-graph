@@ -1,35 +1,21 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
-  Zen,
-  SwapAccepted,
-  SwapCancelled,
-  SwapCreated
-} from "../generated/Zen/Zen"
-import { ExampleEntity } from "../generated/schema"
+  Zen as ZenContract,
+  SwapAccepted as AcceptEvent,
+  SwapCancelled as CancelEvent,
+  SwapCreated as CreateEvent,
+} from "../generated/Zen/Zen";
 
-export function handleSwapAccepted(event: SwapAccepted): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+import { Swap, User, OfferToken, RequestToken } from "../generated/schema";
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+export function handleAccept(event: AcceptEvent): void {
+  let swap = Swap.load(event.params.swapId.toString());
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  if (!swap) {
+  } else {
+    swap.status = "COMPLETE";
+    swap.save();
   }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.swapId = event.params.swapId
-  entity.sender = event.params.sender
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
 
   // Note: If a handler doesn't require existing field values, it is faster
   // _not_ to load the entity from the store. Instead, create it fresh with
@@ -49,13 +35,74 @@ export function handleSwapAccepted(event: SwapAccepted): void {
   // - contract.getOfferTokens(...)
   // - contract.getRequestTokens(...)
   // - contract.getSwapIndex(...)
-  // - contract.getSwapOffer(...)
-  // - contract.getSwapRequest(...)
   // - contract.getSwapSingle(...)
   // - contract.getSwaps(...)
   // - contract.getSwapsOutgoing(...)
 }
 
-export function handleSwapCancelled(event: SwapCancelled): void {}
+export function handleCancel(event: CancelEvent): void {
+  let swap = Swap.load(event.params.swapId.toString());
 
-export function handleSwapCreated(event: SwapCreated): void {}
+  if (!swap) {
+  } else {
+    swap.status = "INACTIVE";
+    swap.save();
+  }
+}
+
+export function handleCreate(event: CreateEvent): void {
+  let swap = Swap.load(event.params.swapId.toString());
+  if (!swap) {
+    swap = new Swap(event.params.swapId.toString());
+    swap.sender = event.params.sender.toHexString();
+    swap.recipient = event.params.recipient.toHexString();
+    swap.createdAt = event.block.timestamp;
+    swap.status = "ACTIVE";
+
+    let zenContract = ZenContract.bind(event.address);
+
+    let offerTokens = zenContract.getSwapOffer(event.params.swapId);
+    let requestTokens = zenContract.getSwapOffer(event.params.swapId);
+
+    for (let i = 0; i < offerTokens.length; i++) {
+      let token = offerTokens[i];
+      let offerToken = new OfferToken(
+        event.params.swapId.toString() + i.toString()
+      );
+
+      offerToken.associatedSwap = event.params.swapId.toString();
+      offerToken.contractAddress = token.contractAddress;
+      offerToken.tokenIds = token.tokenIds;
+      offerToken.quantities = token.tokenQuantities;
+      offerToken.save();
+    }
+
+    for (let i = 0; i < requestTokens.length; i++) {
+      let token = requestTokens[i];
+      let requestToken = new RequestToken(
+        event.params.swapId.toString() + i.toString()
+      );
+
+      requestToken.associatedSwap = event.params.swapId.toString();
+      requestToken.contractAddress = token.contractAddress;
+      requestToken.tokenIds = token.tokenIds;
+      requestToken.quantities = token.tokenQuantities;
+      requestToken.save();
+    }
+  }
+  swap.save();
+
+  // register sender if non-existent
+  let sender = User.load(event.params.sender.toHexString());
+  if (!sender) {
+    sender = new User(event.params.sender.toHexString());
+    sender.save();
+  }
+
+  // register recipient if non-existent
+  let recipient = User.load(event.params.recipient.toHexString());
+  if (!recipient) {
+    recipient = new User(event.params.recipient.toHexString());
+    recipient.save();
+  }
+}

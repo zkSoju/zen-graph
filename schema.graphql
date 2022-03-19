@@ -1,6 +1,38 @@
-type ExampleEntity @entity {
+type Swap @entity {
   id: ID!
-  count: BigInt!
-  swapId: BigInt! # uint256
-  sender: Bytes! # address
+  sender: User!
+  recipient: User!
+  offerTokens: [OfferToken!]! @derivedFrom(field: "associatedSwap")
+  requestTokens: [RequestToken!]! @derivedFrom(field: "associatedSwap")
+  createdAt: BigInt!
+  allotedTime: BigInt!
+  status: SwapStatus!
+}
+
+type OfferToken @entity {
+  id: ID!
+  associatedSwap: Swap!
+  contractAddress: Bytes!
+  tokenIds: [BigInt!]!
+  quantities: [BigInt!]!
+}
+
+type RequestToken @entity {
+  id: ID!
+  associatedSwap: Swap!
+  contractAddress: Bytes!
+  tokenIds: [BigInt!]!
+  quantities: [BigInt!]!
+}
+
+type User @entity {
+  id: ID!
+  outgoingSwaps: [Swap!]! @derivedFrom(field: "sender")
+  incomingSwaps: [Swap!]! @derivedFrom(field: "recipient")
+}
+
+enum SwapStatus {
+  ACTIVE
+  COMPLETE
+  INACTIVE
 }
