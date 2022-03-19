@@ -62,7 +62,7 @@ export function handleCreate(event: CreateEvent): void {
     let zenContract = ZenContract.bind(event.address);
 
     let offerTokens = zenContract.getSwapOffer(event.params.swapId);
-    let requestTokens = zenContract.getSwapOffer(event.params.swapId);
+    let requestTokens = zenContract.getSwapRequest(event.params.swapId);
 
     for (let i = 0; i < offerTokens.length; i++) {
       let token = offerTokens[i];
