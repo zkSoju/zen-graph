@@ -2,8 +2,8 @@ type Swap @entity {
   id: ID!
   sender: User!
   recipient: User!
-  offerComponent: [SwapComponent!]! @derivedFrom(field: "offerSwap")
-  requestComponent: [SwapComponent!]! @derivedFrom(field: "requestSwap")
+  offerComponent: SwapComponent! @derivedFrom(field: "offerSwap")
+  requestComponent: SwapComponent! @derivedFrom(field: "requestSwap")
   createdAt: BigInt!
   allotedTime: BigInt!
   status: SwapStatus!

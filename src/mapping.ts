@@ -78,10 +78,7 @@ export function handleCreate(event: CreateEvent): void {
     for (let i = 0; i < offerComponent.length; i++) {
       let tokenBatch = offerComponent[i];
 
-      if (
-        tokenBatch.tokenQuantities.length === 0 &&
-        tokenBatch.tokenQuantities[0] === BigInt.fromI32(0)
-      ) {
+      if (tokenBatch.tokenQuantities.length === 0) {
         // erc721
         for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
           let token = new Token(
@@ -98,10 +95,7 @@ export function handleCreate(event: CreateEvent): void {
           token.quantity = BigInt.fromI32(0);
           token.save();
         }
-      } else if (
-        tokenBatch.tokenIds.length === 0 &&
-        tokenBatch.tokenIds[0] === BigInt.fromI32(0)
-      ) {
+      } else if (tokenBatch.tokenIds.length === 0) {
         // erc20
       } else {
         // erc721
@@ -131,17 +125,14 @@ export function handleCreate(event: CreateEvent): void {
       );
 
       swapComponent.type = "Request";
-      swapComponent.offerSwap = event.params.swapId.toString();
+      swapComponent.requestSwap = event.params.swapId.toString();
 
       swapComponent.save();
 
       for (let i = 0; i < requestComponent.length; i++) {
-        let tokenBatch = offerComponent[i];
+        let tokenBatch = requestComponent[i];
 
-        if (
-          tokenBatch.tokenQuantities.length === 0 &&
-          tokenBatch.tokenQuantities[0] === BigInt.fromI32(0)
-        ) {
+        if (tokenBatch.tokenQuantities.length === 0) {
           // erc721
           for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
             let token = new Token(
@@ -152,16 +143,13 @@ export function handleCreate(event: CreateEvent): void {
                 tokenBatch.tokenIds[j].toString()
             );
             token.type = "ERC721";
-            token.parentComponent = event.params.swapId.toString() + "offer";
+            token.parentComponent = event.params.swapId.toString() + "request";
             token.contractAddress = tokenBatch.contractAddress;
             token.tokenId = tokenBatch.tokenIds[j];
             token.quantity = BigInt.fromI32(0);
             token.save();
           }
-        } else if (
-          tokenBatch.tokenIds.length === 0 &&
-          tokenBatch.tokenIds[0] === BigInt.fromI32(0)
-        ) {
+        } else if (tokenBatch.tokenIds.length === 0) {
           // erc20
         } else {
           // erc721
@@ -174,7 +162,7 @@ export function handleCreate(event: CreateEvent): void {
                 tokenBatch.tokenIds[j].toString()
             );
             token.type = "ERC1155";
-            token.parentComponent = event.params.swapId.toString() + "offer";
+            token.parentComponent = event.params.swapId.toString() + "request";
             token.contractAddress = tokenBatch.contractAddress;
             token.tokenId = tokenBatch.tokenIds[j];
             token.quantity = tokenBatch.tokenQuantities[j];

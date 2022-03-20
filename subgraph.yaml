@@ -6,7 +6,7 @@ dataSources:
     name: Zen
     network: rinkeby
     source:
-      address: "0x31e71e19384da5822daf4323b9a84fddffed503f"
+      address: "0x4af5c2e8d962314adb993ed356d55a8a67374741"
       abi: Zen
       startBlock: 10351982
     mapping:
