@@ -6,7 +6,7 @@ import {
   SwapCreated as CreateEvent,
 } from "../generated/Zen/Zen";
 
-import { Swap, User, OfferToken, RequestToken } from "../generated/schema";
+import { Swap, User, SwapComponent, Token } from "../generated/schema";
 
 export function handleAccept(event: AcceptEvent): void {
   let swap = Swap.load(event.params.swapId.toString());
@@ -57,52 +57,146 @@ export function handleCreate(event: CreateEvent): void {
     swap.sender = event.params.sender.toHexString();
     swap.recipient = event.params.recipient.toHexString();
     swap.createdAt = event.block.timestamp;
+    swap.allotedTime = BigInt.fromI32(0); // work on this
     swap.status = "ACTIVE";
 
     let zenContract = ZenContract.bind(event.address);
 
-    let offerTokens = zenContract.getSwapOffer(event.params.swapId);
-    let requestTokens = zenContract.getSwapRequest(event.params.swapId);
+    let offerComponent = zenContract.getSwapOffer(event.params.swapId);
 
-    for (let i = 0; i < offerTokens.length; i++) {
-      let token = offerTokens[i];
-      let offerToken = new OfferToken(
-        event.params.swapId.toString() + i.toString()
+    // offerComponent => token[] => token(contract, ids[], quantities[]) + type
+
+    let swapComponent = new SwapComponent(
+      event.params.swapId.toString() + "offer"
+    );
+
+    swapComponent.type = "Offer";
+    swapComponent.offerSwap = event.params.swapId.toString();
+
+    swapComponent.save();
+
+    for (let i = 0; i < offerComponent.length; i++) {
+      let tokenBatch = offerComponent[i];
+
+      if (
+        tokenBatch.tokenQuantities.length === 0 &&
+        tokenBatch.tokenQuantities[0] === BigInt.fromI32(0)
+      ) {
+        // erc721
+        for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
+          let token = new Token(
+            event.params.swapId.toString() +
+              "offer" +
+              tokenBatch.contractAddress.toHexString() +
+              "-" +
+              tokenBatch.tokenIds[j].toString()
+          );
+          token.type = "ERC721";
+          token.parentComponent = event.params.swapId.toString() + "offer";
+          token.contractAddress = tokenBatch.contractAddress;
+          token.tokenId = tokenBatch.tokenIds[j];
+          token.quantity = BigInt.fromI32(0);
+          token.save();
+        }
+      } else if (
+        tokenBatch.tokenIds.length === 0 &&
+        tokenBatch.tokenIds[0] === BigInt.fromI32(0)
+      ) {
+        // erc20
+      } else {
+        // erc721
+        for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
+          let token = new Token(
+            event.params.swapId.toString() +
+              "offer" +
+              tokenBatch.contractAddress.toHexString() +
+              "-" +
+              tokenBatch.tokenIds[j].toString()
+          );
+          token.type = "ERC1155";
+          token.parentComponent = event.params.swapId.toString() + "offer";
+          token.contractAddress = tokenBatch.contractAddress;
+          token.tokenId = tokenBatch.tokenIds[j];
+          token.quantity = tokenBatch.tokenQuantities[j];
+          token.save();
+        }
+      }
+
+      let requestComponent = zenContract.getSwapRequest(event.params.swapId);
+
+      // offerComponent => token[] => token(contract, ids[], quantities[]) + type
+
+      let swapComponent = new SwapComponent(
+        event.params.swapId.toString() + "request"
       );
 
-      offerToken.associatedSwap = event.params.swapId.toString();
-      offerToken.contractAddress = token.contractAddress;
-      offerToken.tokenIds = token.tokenIds;
-      offerToken.quantities = token.tokenQuantities;
-      offerToken.save();
+      swapComponent.type = "Request";
+      swapComponent.offerSwap = event.params.swapId.toString();
+
+      swapComponent.save();
+
+      for (let i = 0; i < requestComponent.length; i++) {
+        let tokenBatch = offerComponent[i];
+
+        if (
+          tokenBatch.tokenQuantities.length === 0 &&
+          tokenBatch.tokenQuantities[0] === BigInt.fromI32(0)
+        ) {
+          // erc721
+          for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
+            let token = new Token(
+              event.params.swapId.toString() +
+                "request" +
+                tokenBatch.contractAddress.toHexString() +
+                "-" +
+                tokenBatch.tokenIds[j].toString()
+            );
+            token.type = "ERC721";
+            token.parentComponent = event.params.swapId.toString() + "offer";
+            token.contractAddress = tokenBatch.contractAddress;
+            token.tokenId = tokenBatch.tokenIds[j];
+            token.quantity = BigInt.fromI32(0);
+            token.save();
+          }
+        } else if (
+          tokenBatch.tokenIds.length === 0 &&
+          tokenBatch.tokenIds[0] === BigInt.fromI32(0)
+        ) {
+          // erc20
+        } else {
+          // erc721
+          for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
+            let token = new Token(
+              event.params.swapId.toString() +
+                "request" +
+                tokenBatch.contractAddress.toHexString() +
+                "-" +
+                tokenBatch.tokenIds[j].toString()
+            );
+            token.type = "ERC1155";
+            token.parentComponent = event.params.swapId.toString() + "offer";
+            token.contractAddress = tokenBatch.contractAddress;
+            token.tokenId = tokenBatch.tokenIds[j];
+            token.quantity = tokenBatch.tokenQuantities[j];
+            token.save();
+          }
+        }
+      }
+    }
+    swap.save();
+
+    // register sender if non-existent
+    let sender = User.load(event.params.sender.toHexString());
+    if (!sender) {
+      sender = new User(event.params.sender.toHexString());
+      sender.save();
     }
 
-    for (let i = 0; i < requestTokens.length; i++) {
-      let token = requestTokens[i];
-      let requestToken = new RequestToken(
-        event.params.swapId.toString() + i.toString()
-      );
-
-      requestToken.associatedSwap = event.params.swapId.toString();
-      requestToken.contractAddress = token.contractAddress;
-      requestToken.tokenIds = token.tokenIds;
-      requestToken.quantities = token.tokenQuantities;
-      requestToken.save();
+    // register recipient if non-existent
+    let recipient = User.load(event.params.recipient.toHexString());
+    if (!recipient) {
+      recipient = new User(event.params.recipient.toHexString());
+      recipient.save();
     }
-  }
-  swap.save();
-
-  // register sender if non-existent
-  let sender = User.load(event.params.sender.toHexString());
-  if (!sender) {
-    sender = new User(event.params.sender.toHexString());
-    sender.save();
-  }
-
-  // register recipient if non-existent
-  let recipient = User.load(event.params.recipient.toHexString());
-  if (!recipient) {
-    recipient = new User(event.params.recipient.toHexString());
-    recipient.save();
   }
 }

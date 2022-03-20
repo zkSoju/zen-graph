@@ -2,27 +2,28 @@ type Swap @entity {
   id: ID!
   sender: User!
   recipient: User!
-  offerTokens: [OfferToken!]! @derivedFrom(field: "associatedSwap")
-  requestTokens: [RequestToken!]! @derivedFrom(field: "associatedSwap")
+  offerComponent: [SwapComponent!]! @derivedFrom(field: "offerSwap")
+  requestComponent: [SwapComponent!]! @derivedFrom(field: "requestSwap")
   createdAt: BigInt!
   allotedTime: BigInt!
   status: SwapStatus!
 }
 
-type OfferToken @entity {
+type SwapComponent @entity {
   id: ID!
-  associatedSwap: Swap!
-  contractAddress: Bytes!
-  tokenIds: [BigInt!]!
-  quantities: [BigInt!]!
+  type: String!
+  offerSwap: Swap
+  requestSwap: Swap
+  tokens: [Token!]! @derivedFrom(field: "parentComponent")
 }
 
-type RequestToken @entity {
+type Token @entity {
   id: ID!
-  associatedSwap: Swap!
+  type: String!
+  parentComponent: SwapComponent!
   contractAddress: Bytes!
-  tokenIds: [BigInt!]!
-  quantities: [BigInt!]!
+  tokenId: BigInt!
+  quantity: BigInt!
 }
 
 type User @entity {

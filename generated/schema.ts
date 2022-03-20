@@ -112,31 +112,28 @@ export class Swap extends Entity {
   }
 }
 
-export class OfferToken extends Entity {
+export class SwapComponent extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
 
-    this.set("associatedSwap", Value.fromString(""));
-    this.set("contractAddress", Value.fromBytes(Bytes.empty()));
-    this.set("tokenIds", Value.fromBigIntArray(new Array(0)));
-    this.set("quantities", Value.fromBigIntArray(new Array(0)));
+    this.set("type", Value.fromString(""));
   }
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save OfferToken entity without an ID");
+    assert(id != null, "Cannot save SwapComponent entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type OfferToken must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type SwapComponent must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("OfferToken", id.toString(), this);
+      store.set("SwapComponent", id.toString(), this);
     }
   }
 
-  static load(id: string): OfferToken | null {
-    return changetype<OfferToken | null>(store.get("OfferToken", id));
+  static load(id: string): SwapComponent | null {
+    return changetype<SwapComponent | null>(store.get("SwapComponent", id));
   }
 
   get id(): string {
@@ -148,68 +145,85 @@ export class OfferToken extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get associatedSwap(): string {
-    let value = this.get("associatedSwap");
+  get type(): string {
+    let value = this.get("type");
     return value!.toString();
   }
 
-  set associatedSwap(value: string) {
-    this.set("associatedSwap", Value.fromString(value));
+  set type(value: string) {
+    this.set("type", Value.fromString(value));
   }
 
-  get contractAddress(): Bytes {
-    let value = this.get("contractAddress");
-    return value!.toBytes();
+  get offerSwap(): string | null {
+    let value = this.get("offerSwap");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set contractAddress(value: Bytes) {
-    this.set("contractAddress", Value.fromBytes(value));
+  set offerSwap(value: string | null) {
+    if (!value) {
+      this.unset("offerSwap");
+    } else {
+      this.set("offerSwap", Value.fromString(<string>value));
+    }
   }
 
-  get tokenIds(): Array<BigInt> {
-    let value = this.get("tokenIds");
-    return value!.toBigIntArray();
+  get requestSwap(): string | null {
+    let value = this.get("requestSwap");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set tokenIds(value: Array<BigInt>) {
-    this.set("tokenIds", Value.fromBigIntArray(value));
+  set requestSwap(value: string | null) {
+    if (!value) {
+      this.unset("requestSwap");
+    } else {
+      this.set("requestSwap", Value.fromString(<string>value));
+    }
   }
 
-  get quantities(): Array<BigInt> {
-    let value = this.get("quantities");
-    return value!.toBigIntArray();
+  get tokens(): Array<string> {
+    let value = this.get("tokens");
+    return value!.toStringArray();
   }
 
-  set quantities(value: Array<BigInt>) {
-    this.set("quantities", Value.fromBigIntArray(value));
+  set tokens(value: Array<string>) {
+    this.set("tokens", Value.fromStringArray(value));
   }
 }
 
-export class RequestToken extends Entity {
+export class Token extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
 
-    this.set("associatedSwap", Value.fromString(""));
+    this.set("type", Value.fromString(""));
+    this.set("parentComponent", Value.fromString(""));
     this.set("contractAddress", Value.fromBytes(Bytes.empty()));
-    this.set("tokenIds", Value.fromBigIntArray(new Array(0)));
-    this.set("quantities", Value.fromBigIntArray(new Array(0)));
+    this.set("tokenId", Value.fromBigInt(BigInt.zero()));
+    this.set("quantity", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save RequestToken entity without an ID");
+    assert(id != null, "Cannot save Token entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type RequestToken must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type Token must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("RequestToken", id.toString(), this);
+      store.set("Token", id.toString(), this);
     }
   }
 
-  static load(id: string): RequestToken | null {
-    return changetype<RequestToken | null>(store.get("RequestToken", id));
+  static load(id: string): Token | null {
+    return changetype<Token | null>(store.get("Token", id));
   }
 
   get id(): string {
@@ -221,13 +235,22 @@ export class RequestToken extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get associatedSwap(): string {
-    let value = this.get("associatedSwap");
+  get type(): string {
+    let value = this.get("type");
     return value!.toString();
   }
 
-  set associatedSwap(value: string) {
-    this.set("associatedSwap", Value.fromString(value));
+  set type(value: string) {
+    this.set("type", Value.fromString(value));
+  }
+
+  get parentComponent(): string {
+    let value = this.get("parentComponent");
+    return value!.toString();
+  }
+
+  set parentComponent(value: string) {
+    this.set("parentComponent", Value.fromString(value));
   }
 
   get contractAddress(): Bytes {
@@ -239,22 +262,22 @@ export class RequestToken extends Entity {
     this.set("contractAddress", Value.fromBytes(value));
   }
 
-  get tokenIds(): Array<BigInt> {
-    let value = this.get("tokenIds");
-    return value!.toBigIntArray();
+  get tokenId(): BigInt {
+    let value = this.get("tokenId");
+    return value!.toBigInt();
   }
 
-  set tokenIds(value: Array<BigInt>) {
-    this.set("tokenIds", Value.fromBigIntArray(value));
+  set tokenId(value: BigInt) {
+    this.set("tokenId", Value.fromBigInt(value));
   }
 
-  get quantities(): Array<BigInt> {
-    let value = this.get("quantities");
-    return value!.toBigIntArray();
+  get quantity(): BigInt {
+    let value = this.get("quantity");
+    return value!.toBigInt();
   }
 
-  set quantities(value: Array<BigInt>) {
-    this.set("quantities", Value.fromBigIntArray(value));
+  set quantity(value: BigInt) {
+    this.set("quantity", Value.fromBigInt(value));
   }
 }
 
