@@ -76,6 +76,12 @@
         "internalType": "address",
         "name": "recipient",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "allotedTime",
+        "type": "uint256"
       }
     ],
     "name": "SwapCreated",

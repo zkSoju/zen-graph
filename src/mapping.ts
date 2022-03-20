@@ -57,7 +57,7 @@ export function handleCreate(event: CreateEvent): void {
     swap.sender = event.params.sender.toHexString();
     swap.recipient = event.params.recipient.toHexString();
     swap.createdAt = event.block.timestamp;
-    swap.allotedTime = BigInt.fromI32(0); // work on this
+    swap.allotedTime = event.params.allotedTime;
     swap.status = "ACTIVE";
 
     let zenContract = ZenContract.bind(event.address);

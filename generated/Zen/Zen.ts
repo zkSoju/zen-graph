@@ -86,6 +86,10 @@ export class SwapCreated__Params {
   get recipient(): Address {
     return this._event.parameters[2].value.toAddress();
   }
+
+  get allotedTime(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
 }
 
 export class Zen__getSwapOfferResultValue0Struct extends ethereum.Tuple {

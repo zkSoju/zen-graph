@@ -66,22 +66,22 @@ export class Swap extends Entity {
     this.set("recipient", Value.fromString(value));
   }
 
-  get offerTokens(): Array<string> {
-    let value = this.get("offerTokens");
-    return value!.toStringArray();
+  get offerComponent(): string {
+    let value = this.get("offerComponent");
+    return value!.toString();
   }
 
-  set offerTokens(value: Array<string>) {
-    this.set("offerTokens", Value.fromStringArray(value));
+  set offerComponent(value: string) {
+    this.set("offerComponent", Value.fromString(value));
   }
 
-  get requestTokens(): Array<string> {
-    let value = this.get("requestTokens");
-    return value!.toStringArray();
+  get requestComponent(): string {
+    let value = this.get("requestComponent");
+    return value!.toString();
   }
 
-  set requestTokens(value: Array<string>) {
-    this.set("requestTokens", Value.fromStringArray(value));
+  set requestComponent(value: string) {
+    this.set("requestComponent", Value.fromString(value));
   }
 
   get createdAt(): BigInt {
