@@ -1,10 +1,11 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, ipfs, json, log } from "@graphprotocol/graph-ts";
 import {
   Zen as ZenContract,
   SwapAccepted as AcceptEvent,
   SwapCancelled as CancelEvent,
   SwapCreated as CreateEvent,
 } from "../generated/Zen/Zen";
+import { ERC721 as ERC721Contract } from "../generated/Zen/ERC721";
 
 import { Swap, User, SwapComponent, Token } from "../generated/schema";
 
@@ -16,28 +17,6 @@ export function handleAccept(event: AcceptEvent): void {
     swap.status = "COMPLETE";
     swap.save();
   }
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.getOfferTokens(...)
-  // - contract.getRequestTokens(...)
-  // - contract.getSwapIndex(...)
-  // - contract.getSwapSingle(...)
-  // - contract.getSwaps(...)
-  // - contract.getSwapsOutgoing(...)
 }
 
 export function handleCancel(event: CancelEvent): void {
@@ -78,6 +57,8 @@ export function handleCreate(event: CreateEvent): void {
     for (let i = 0; i < offerComponent.length; i++) {
       let tokenBatch = offerComponent[i];
 
+      let tokenContract = ERC721Contract.bind(tokenBatch.contractAddress);
+
       if (tokenBatch.tokenQuantities.length === 0) {
         // erc721
         for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
@@ -93,12 +74,32 @@ export function handleCreate(event: CreateEvent): void {
           token.contractAddress = tokenBatch.contractAddress;
           token.tokenId = tokenBatch.tokenIds[j];
           token.quantity = BigInt.fromI32(0);
+
+          // fetch token image
+          let tokenURI = tokenContract.try_tokenURI(tokenBatch.tokenIds[j]);
+
+          if (tokenURI.reverted) {
+            log.info("tokenURI reverted", []);
+            token.image = "";
+          } else {
+            let metadata = ipfs.cat(tokenURI.value);
+            if (metadata) {
+              const value = json.fromBytes(metadata).toObject();
+              if (value) {
+                const image = value.get("image");
+                if (image) {
+                  token.image = image.toString();
+                }
+              }
+            }
+          }
+
           token.save();
         }
       } else if (tokenBatch.tokenIds.length === 0) {
         // erc20
       } else {
-        // erc721
+        // erc1155
         for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
           let token = new Token(
             event.params.swapId.toString() +
@@ -112,6 +113,25 @@ export function handleCreate(event: CreateEvent): void {
           token.contractAddress = tokenBatch.contractAddress;
           token.tokenId = tokenBatch.tokenIds[j];
           token.quantity = tokenBatch.tokenQuantities[j];
+
+          // fetch token image
+          let tokenURI = tokenContract.try_tokenURI(tokenBatch.tokenIds[j]);
+
+          if (tokenURI.reverted) {
+            log.info("tokenURI reverted", []);
+            token.image = "";
+          } else {
+            let metadata = ipfs.cat(tokenURI.value);
+            if (metadata) {
+              const value = json.fromBytes(metadata).toObject();
+              if (value) {
+                const image = value.get("image");
+                if (image) {
+                  token.image = image.toString();
+                }
+              }
+            }
+          }
           token.save();
         }
       }
@@ -132,8 +152,11 @@ export function handleCreate(event: CreateEvent): void {
       for (let i = 0; i < requestComponent.length; i++) {
         let tokenBatch = requestComponent[i];
 
+        let tokenContract = ERC721Contract.bind(tokenBatch.contractAddress);
+
         if (tokenBatch.tokenQuantities.length === 0) {
           // erc721
+
           for (let j = 0; j < tokenBatch.tokenIds.length; j++) {
             let token = new Token(
               event.params.swapId.toString() +
@@ -147,6 +170,25 @@ export function handleCreate(event: CreateEvent): void {
             token.contractAddress = tokenBatch.contractAddress;
             token.tokenId = tokenBatch.tokenIds[j];
             token.quantity = BigInt.fromI32(0);
+
+            // fetch token image
+            let tokenURI = tokenContract.try_tokenURI(tokenBatch.tokenIds[j]);
+
+            if (tokenURI.reverted) {
+              log.info("tokenURI reverted", []);
+              token.image = "";
+            } else {
+              let metadata = ipfs.cat(tokenURI.value);
+              if (metadata) {
+                const value = json.fromBytes(metadata).toObject();
+                if (value) {
+                  const image = value.get("image");
+                  if (image) {
+                    token.image = image.toString();
+                  }
+                }
+              }
+            }
             token.save();
           }
         } else if (tokenBatch.tokenIds.length === 0) {
@@ -166,6 +208,26 @@ export function handleCreate(event: CreateEvent): void {
             token.contractAddress = tokenBatch.contractAddress;
             token.tokenId = tokenBatch.tokenIds[j];
             token.quantity = tokenBatch.tokenQuantities[j];
+
+            // fetch token image
+            let tokenURI = tokenContract.try_tokenURI(tokenBatch.tokenIds[j]);
+
+            if (tokenURI.reverted) {
+              log.info("tokenURI reverted", []);
+              token.image = "";
+            } else {
+              let metadata = ipfs.cat(tokenURI.value);
+              if (metadata) {
+                const value = json.fromBytes(metadata).toObject();
+                if (value) {
+                  const image = value.get("image");
+                  if (image) {
+                    token.image = image.toString();
+                  }
+                }
+              }
+            }
+
             token.save();
           }
         }

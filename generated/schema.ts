@@ -204,6 +204,7 @@ export class Token extends Entity {
     this.set("id", Value.fromString(id));
 
     this.set("type", Value.fromString(""));
+    this.set("image", Value.fromString(""));
     this.set("parentComponent", Value.fromString(""));
     this.set("contractAddress", Value.fromBytes(Bytes.empty()));
     this.set("tokenId", Value.fromBigInt(BigInt.zero()));
@@ -242,6 +243,15 @@ export class Token extends Entity {
 
   set type(value: string) {
     this.set("type", Value.fromString(value));
+  }
+
+  get image(): string {
+    let value = this.get("image");
+    return value!.toString();
+  }
+
+  set image(value: string) {
+    this.set("image", Value.fromString(value));
   }
 
   get parentComponent(): string {
