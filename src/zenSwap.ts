@@ -5,7 +5,7 @@ import {
   SwapCancelled as CancelEvent,
   SwapCreated as CreateEvent,
 } from "../generated/Zen/Zen";
-import { ERC721 as ERC721Contract } from "../generated/Zen/ERC721";
+import { EIP721 as EIP721Contract } from "../generated/Zen/EIP721";
 
 import { Swap, User, SwapComponent, Token } from "../generated/schema";
 
@@ -57,7 +57,7 @@ export function handleCreate(event: CreateEvent): void {
     for (let i = 0; i < offerComponent.length; i++) {
       let tokenBatch = offerComponent[i];
 
-      let tokenContract = ERC721Contract.bind(tokenBatch.contractAddress);
+      let tokenContract = EIP721Contract.bind(tokenBatch.contractAddress);
 
       if (tokenBatch.tokenQuantities.length === 0) {
         // erc721
@@ -82,7 +82,13 @@ export function handleCreate(event: CreateEvent): void {
             log.info("tokenURI reverted", []);
             token.image = "";
           } else {
-            let metadata = ipfs.cat(tokenURI.value);
+            let splitUrl = tokenURI.value.split("/");
+            let ipfsUri =
+              splitUrl[splitUrl.length - 2] +
+              "/" +
+              splitUrl[splitUrl.length - 1];
+
+            let metadata = ipfs.cat(ipfsUri);
             if (metadata) {
               const value = json.fromBytes(metadata).toObject();
               if (value) {
@@ -121,7 +127,13 @@ export function handleCreate(event: CreateEvent): void {
             log.info("tokenURI reverted", []);
             token.image = "";
           } else {
-            let metadata = ipfs.cat(tokenURI.value);
+            let splitUrl = tokenURI.value.split("/");
+            let ipfsUri =
+              splitUrl[splitUrl.length - 2] +
+              "/" +
+              splitUrl[splitUrl.length - 1];
+
+            let metadata = ipfs.cat(ipfsUri);
             if (metadata) {
               const value = json.fromBytes(metadata).toObject();
               if (value) {
@@ -152,7 +164,7 @@ export function handleCreate(event: CreateEvent): void {
       for (let i = 0; i < requestComponent.length; i++) {
         let tokenBatch = requestComponent[i];
 
-        let tokenContract = ERC721Contract.bind(tokenBatch.contractAddress);
+        let tokenContract = EIP721Contract.bind(tokenBatch.contractAddress);
 
         if (tokenBatch.tokenQuantities.length === 0) {
           // erc721
@@ -178,7 +190,13 @@ export function handleCreate(event: CreateEvent): void {
               log.info("tokenURI reverted", []);
               token.image = "";
             } else {
-              let metadata = ipfs.cat(tokenURI.value);
+              let splitUrl = tokenURI.value.split("/");
+              let ipfsUri =
+                splitUrl[splitUrl.length - 2] +
+                "/" +
+                splitUrl[splitUrl.length - 1];
+
+              let metadata = ipfs.cat(ipfsUri);
               if (metadata) {
                 const value = json.fromBytes(metadata).toObject();
                 if (value) {
@@ -216,7 +234,13 @@ export function handleCreate(event: CreateEvent): void {
               log.info("tokenURI reverted", []);
               token.image = "";
             } else {
-              let metadata = ipfs.cat(tokenURI.value);
+              let splitUrl = tokenURI.value.split("/");
+              let ipfsUri =
+                splitUrl[splitUrl.length - 2] +
+                "/" +
+                splitUrl[splitUrl.length - 1];
+
+              let metadata = ipfs.cat(ipfsUri);
               if (metadata) {
                 const value = json.fromBytes(metadata).toObject();
                 if (value) {

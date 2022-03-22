@@ -21,8 +21,8 @@ dataSources:
       abis:
         - name: Zen
           file: ./abis/Zen.json
-        - name: ERC721
-          file: ./abis/ERC721.json
+        - name: EIP721
+          file: ./abis/EIP721.json
       eventHandlers:
         - event: SwapAccepted(indexed uint256,indexed address,indexed address)
           handler: handleAccept
@@ -31,3 +31,25 @@ dataSources:
         - event: SwapCreated(indexed uint256,indexed address,indexed address,uint256)
           handler: handleCreate
       file: ./src/zenSwap.ts
+  - kind: ethereum
+    name: EIP721
+    network: rinkeby
+    source:
+      abi: EIP721
+      startBlock: 10359824
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - TokenContract
+        - Owner
+        - Operator
+      abis:
+        - name: EIP721
+          file: ./abis/EIP721.json
+      eventHandlers:
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApproveAll
+      file: ./src/zenCore.ts

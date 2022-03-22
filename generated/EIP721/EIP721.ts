@@ -88,9 +88,9 @@ export class Transfer__Params {
   }
 }
 
-export class ERC721 extends ethereum.SmartContract {
-  static bind(address: Address): ERC721 {
-    return new ERC721("ERC721", address);
+export class EIP721 extends ethereum.SmartContract {
+  static bind(address: Address): EIP721 {
+    return new EIP721("EIP721", address);
   }
 
   balanceOf(owner: Address): BigInt {

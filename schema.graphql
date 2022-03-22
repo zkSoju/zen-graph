@@ -31,6 +31,15 @@ type User @entity {
   id: ID!
   outgoingSwaps: [Swap!]! @derivedFrom(field: "sender")
   incomingSwaps: [Swap!]! @derivedFrom(field: "recipient")
+  approvedOperatorFor: [Approval!]! @derivedFrom(field: "user")
+}
+
+## for each token has user approved main Zen contract?
+type Approval @entity {
+  id: ID!
+  user: User!
+  contractAddress: Bytes!
+  isApproved: Boolean!
 }
 
 enum SwapStatus {
