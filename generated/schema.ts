@@ -340,13 +340,13 @@ export class User extends Entity {
     this.set("incomingSwaps", Value.fromStringArray(value));
   }
 
-  get approvedOperatorFor(): Array<string> {
-    let value = this.get("approvedOperatorFor");
+  get zenOperatorApprovals(): Array<string> {
+    let value = this.get("zenOperatorApprovals");
     return value!.toStringArray();
   }
 
-  set approvedOperatorFor(value: Array<string>) {
-    this.set("approvedOperatorFor", Value.fromStringArray(value));
+  set zenOperatorApprovals(value: Array<string>) {
+    this.set("zenOperatorApprovals", Value.fromStringArray(value));
   }
 }
 

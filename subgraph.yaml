@@ -6,7 +6,7 @@ dataSources:
     name: Zen
     network: rinkeby
     source:
-      address: "0x3374ff4a09b84df7212c18483dbd1f519e68cdff"
+      address: "0x9fac1fddbd4db28d3838c205eb200f29e2160182"
       abi: Zen
       startBlock: 10359824
     mapping:
@@ -15,8 +15,7 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - Swap
-        - OfferTokens
-        - RequestTokens
+        - Token
         - User
       abis:
         - name: Zen
@@ -31,7 +30,7 @@ dataSources:
         - event: SwapCreated(indexed uint256,indexed address,indexed address,uint256)
           handler: handleCreate
       file: ./src/zenSwap.ts
-  - kind: ethereum
+  - kind: ethereum/contract
     name: EIP721
     network: rinkeby
     source:
@@ -42,14 +41,15 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
+        - Approval
         - Token
-        - TokenContract
-        - Owner
-        - Operator
+        - Swap
       abis:
         - name: EIP721
           file: ./abis/EIP721.json
       eventHandlers:
         - event: ApprovalForAll(indexed address,indexed address,bool)
           handler: handleApproveAll
-      file: ./src/zenCore.ts
+        # - event: Transfer(indexed address,indexed address,indexed uint256)
+        #   handler: handleTransfer
+      file: ./src/zenUtility.ts
